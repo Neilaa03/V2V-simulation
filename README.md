@@ -13,7 +13,7 @@
 ## Demo
 
 ![Light mode simulation](doc/screen_light.png)
-![Dark mode simulation](doc/screen_dark.png)
+![Dark mode simulation](doc/screendark.png)
 
 > Simulate up to 3000 vehicles communicating in real-time on actual road networks from OpenStreetMap
 
