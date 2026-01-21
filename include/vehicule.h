@@ -1,0 +1,126 @@
+#ifndef VEHICULE_H
+#define VEHICULE_H
+
+#include "graph_types.h"
+#include <vector>
+#include <deque>
+#include <utility>
+#include <cmath>
+
+
+class Vehicule {
+
+public:
+    Vehicule(int id, const RoadGraph& graph, Vertex start, Vertex goal, double speed,
+             double range, double collisionDist);
+
+    ~Vehicule();
+
+    /**
+     * @brief Updates the vehicle's position along its current edge.
+     * @param deltaTime Time step for movement update (seconds).
+     */
+    void update(double deltaTime);
+
+    /**
+     * @brief Reduces speed if any neighbor is too close (collision avoidance).
+     */
+    void avoidCollision();
+    void printStatus() const;
+
+    /**
+     * @brief Calculates Euclidean distance to another vehicle.
+     * @param from Another vehicle to measure distance from.
+     * @return Euclidean distance between vehicles.
+     */
+    double calculateDist(Vehicule from) const;
+    std::pair<double, double> getPosition() const;
+
+    /**
+     * @brief Called when car reaches dest to switch goal and start Vertex
+     * so that the car keeps moving
+    */
+    void DestReached();
+
+    /**
+     * @brief pickNextEdge by iterating on outgoing Edges from currentEdge
+     * @return random outgoing Edge
+     */
+    Vertex pickNextEdge();
+
+    /**
+     * @brief checks road validity for car movement/ placement
+     * @param the Edge to check, and graph
+     * @return boolean
+     */
+    static bool isValidRoad(const std::string& type);
+    static bool isValidVertex(Vertex v, const RoadGraph& graph);
+
+
+    /**
+     * @brief Check if a vertex has at least one valid outgoing edge
+     * @param v
+     * @param graph
+     * @return boolean
+     */
+    static bool hasValidOutgoingEdge(Vertex v, const RoadGraph& graph);
+
+
+    //getters
+    int getId() const { return id; }
+    double getTransmissionRange() const { return transmissionRange; }
+    const std::vector<Vehicule*>& getNeighbors() const { return neighbors;}
+    
+    /**
+     * @brief Retourne la direction (heading) du véhicule en degrés
+     * @return Angle en degrés (0° = vers le haut, 90° = vers la droite)
+     */
+    double getHeading() const { return currentHeading; }
+    
+    //setter
+    void setTransmissionRange(double range) { transmissionRange = range; }
+    void setSpeed(double s) { speed = s; }
+
+    void addNeighbor(Vehicule* v) { neighbors.push_back(v); }
+    void clearNeighbors() { neighbors.clear(); }
+
+
+private:
+
+    int id;
+    const RoadGraph& graph;         ///< Reference to shared road graph
+
+    Vertex start;
+    Vertex goal;
+
+    Vertex nextVertex;
+    Edge currEdge;
+    Vertex previousVertex;
+    double collisionDist;
+    double transmissionRange;
+    double speed;
+    
+    // Anti-loop and stuck detection
+    std::deque<Vertex> recentVertices;  // Last N vertices visited
+    static constexpr int MAX_HISTORY = 8;  // Keep track of last 8 vertices
+    int stuckCounter = 0;  // Count consecutive failed edge selections
+
+    //default values
+    Vertex currVertex;
+    double edgeLength = 0.0;      ///< Cach of graph[currEdge].distance
+    double positionOnEdge = 0.0;     ///< Distance along the current edge
+    bool destReached = false;
+    double slowFactor = 0.8;        ///< Speed reduction factor when avoiding collision
+    double currentHeading = 0.0;    ///< Direction du véhicule en degrés (lissée)
+    double targetHeading = 0.0;     ///< Direction cible avant lissage
+    double headingSmoothingFactor = 0.15; ///< Facteur de lissage du heading (0-1, plus haut = plus rapide)
+    
+    // Position précédente pour calculer la direction du mouvement
+    double previousLat = 0.0;
+    double previousLon = 0.0;
+
+    std::vector<Vehicule*> neighbors;
+    std::vector<Vertex> route;      ///< Optional route (sequence of vertices)
+};
+
+#endif
